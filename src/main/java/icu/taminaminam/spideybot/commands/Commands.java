@@ -237,7 +237,7 @@ public class Commands {
 						.description(getLanguageString(language, "command.info.general"))
 						.addField(EmbedFieldData.builder()
 								.name(getLanguageString(language, "command.info.version.title"))
-								.value(getLanguageString(language, "command.info.version.description", BotMain.CURRENT_VERSION))
+								.value(getLanguageString(language, "command.info.version.description", BotMain.CURRENT_VERSION, BotMain.BOTENV))
 								.inline(false)
 								.build()
 						)

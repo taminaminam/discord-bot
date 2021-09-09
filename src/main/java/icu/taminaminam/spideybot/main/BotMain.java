@@ -16,7 +16,8 @@ import reactor.core.publisher.Mono;
 
 public class BotMain {
 	
-	public static final String CURRENT_VERSION = "0.0.1";
+	public static final String CURRENT_VERSION = "0.0.2";
+	public static final String BOTENV = "DEV";
 	
 	private static final Logger logger = LogManager.getLogger("Main");
 	
