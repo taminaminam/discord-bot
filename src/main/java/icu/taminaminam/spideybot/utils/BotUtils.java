@@ -43,7 +43,7 @@ public class BotUtils {
 	/**
 	 * The prefix that should get used by default if not changed by any user
 	 */
-	public static final String DEFAULT_PREFIX = "=";
+	public static final String DEFAULT_PREFIX = "spidey";
 	
 	public static final Color COLOR_DARK_RED = Color.of(0xFF0000);
 	public static final Color COLOR_LIGHT_RED = Color.of(0xFF5246);
