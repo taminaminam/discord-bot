@@ -22,11 +22,11 @@ import java.util.Objects;
 import java.util.function.Function;
 
 public class DataHandler {
-	
+
 	private static final Logger logger = LogManager.getLogger("DataHandler");
-	
+
 	private static final ConnectionPool pool;
-	
+
 	static {
 		PostgresqlConnectionFactory connectionFactory = new PostgresqlConnectionFactory(PostgresqlConnectionConfiguration.builder()
 				.host(Credentials.SQL_HOST)
@@ -43,7 +43,7 @@ public class DataHandler {
 				.build();
 		pool = new ConnectionPool(configuration);
 	}
-	
+
 	/**
 	 * Gets one of the {@link Connection}s inside {@link #pool}.
 	 *
@@ -53,7 +53,7 @@ public class DataHandler {
 	private static Mono<Connection> getConnection(){
 		return pool.create();
 	}
-	
+
 	@NonNull
 	private static <T> Mono<T> useConnection(Function<Connection, Mono<T>> function){
 		return getConnection().flatMap(con -> function.apply(con)
@@ -62,15 +62,16 @@ public class DataHandler {
 				)
 		);
 	}
-	
+
 	public static Mono<Void> disconnect(){
 		return pool.disposeLater();
 	}
-	
+
 	private enum Tables {
 		GUILDS("guilds"),
 		USERS("users"),
-		PERMISSIONS("permissions")
+		PERMISSIONS("permissions"),
+		DEVS("devs")
 		;
 		private final String name;
 		Tables(@NonNull String name){
@@ -81,7 +82,7 @@ public class DataHandler {
 		 */
 		@NonNull public String getName() { return name; }
 	}
-	
+
 	/**
 	 * Creates all missing tables.
 	 *
@@ -97,7 +98,7 @@ public class DataHandler {
 				")";
 		String createUsersTable = "CREATE TABLE IF NOT EXISTS " + Tables.USERS.getName() + " (" +
 				"userId BIGINT," +
-				"prefix VARCHAR(10)," +
+				"prefix VARCHAR(25)," +
 				"language VARCHAR(5)," +
 				"PRIMARY KEY(userId)" +
 				")";
@@ -109,14 +110,29 @@ public class DataHandler {
 				"isWhitelist BOOLEAN," +
 				"PRIMARY KEY(permissionName, guildId, targetId, isUser)" +
 				")";
+		//devs table to identify "Bot Owners" and Devs
+		String createDevsTable = "CREATE TABLE IF NOT EXISTS " + Tables.DEVS.getName() + " (" +
+				"userId BIGINT," +
+				"isDev BOOLEAN," +
+				"isOwner BOOLEAN," +
+				"isListed BOOLEAN," +
+				"role TEXT," +
+				"PRIMARY KEY(userId)" +
+				"CONSTRAINT devsTable_userId " +
+				"FOREIGN KEY(userId)" +
+				"REFERENCES " + Tables.USERS.getName() + "(userId) " +
+				"ON DELETE CASCADE" +
+				")";
+
 		return useConnection(con -> Mono.from(con.createBatch()
 				.add(createGuildsTable)
 				.add(createUsersTable)
 				.add(createPermissionsTable)
+				.add(createDevsTable)
 				.execute()
 		).then());
 	}
-	
+
 	/**
 	 * Puts the default values into the database for the provided ID. Nothing happens if the guild is already saved.
 	 *
@@ -135,7 +151,7 @@ public class DataHandler {
 				.map(i -> i > 0)
 		);
 	}
-	
+
 	/**
 	 * Puts the default values into the database for the provided ID. Nothing happens if the user is already saved.
 	 *
@@ -154,7 +170,7 @@ public class DataHandler {
 				.map(i -> i > 0)
 		);
 	}
-	
+
 	/**
 	 * Retrieves the stored data of the guild with the provided ID.
 	 *
@@ -169,7 +185,7 @@ public class DataHandler {
 				.flatMap(result -> Mono.from(result.map((row, rowMetadata) -> DBGuild.ofRow(row))))
 		);
 	}
-	
+
 	public static Mono<Void> setGuildPrefix(Snowflake guildId, String prefix){
 		return useConnection(con -> Mono.from(con.createStatement("UPDATE " + Tables.GUILDS.getName() + " SET prefix=$1 WHERE guildId=$2")
 				.bind("$1", prefix)
@@ -177,7 +193,7 @@ public class DataHandler {
 				.execute()
 		).flatMapMany(Result::getRowsUpdated).then());
 	}
-	
+
 	public static Mono<Void> setGuildLanguage(Snowflake guildId, String language){
 		return useConnection(con -> Mono.from(con.createStatement("UPDATE " + Tables.GUILDS.getName() + " SET language=$1 WHERE guildId=$2")
 				.bind("$1", language)
@@ -185,7 +201,7 @@ public class DataHandler {
 				.execute()
 		).flatMapMany(Result::getRowsUpdated).then());
 	}
-	
+
 	/**
 	 * Retrieves the stored data of the user with the provided ID.
 	 *
@@ -200,7 +216,7 @@ public class DataHandler {
 				.flatMap(result -> Mono.from(result.map((row, rowMetadata) -> DBUser.ofRow(row))))
 		);
 	}
-	
+
 	public static Mono<Void> setUserPrefix(Snowflake userId, String prefix){
 		return useConnection(con -> Mono.from(con.createStatement("UPDATE " + Tables.USERS.getName() + " SET prefix=$1 WHERE userId=$2")
 				.bind("$1", prefix)
@@ -208,7 +224,7 @@ public class DataHandler {
 				.execute()
 		).flatMapMany(Result::getRowsUpdated).then());
 	}
-	
+
 	public static Mono<Void> setUserLanguage(Snowflake userId, String language){
 		return useConnection(con -> Mono.from(con.createStatement("UPDATE " + Tables.USERS.getName() + " SET language=$1 WHERE userId=$2")
 				.bind("$1", language)
@@ -216,7 +232,7 @@ public class DataHandler {
 				.execute()
 		).flatMapMany(Result::getRowsUpdated).then());
 	}
-	
+
 	/**
 	 * Retrieves all black- and whitelisted users and roles for the permission in the provided guild.
 	 *
@@ -233,5 +249,5 @@ public class DataHandler {
 				.flatMap(result -> Mono.from(result.map((row, rowMetadata) -> PermissionManager.CommandPermission.ofRow(row))))
 		);
 	}
-	
+
 }
