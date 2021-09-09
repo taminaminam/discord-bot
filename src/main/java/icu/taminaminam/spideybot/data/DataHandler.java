@@ -115,7 +115,7 @@ public class DataHandler {
 				"isDev BOOLEAN," +
 				"isOwner BOOLEAN," +
 				"isListed BOOLEAN," +
-				"role TEXT," +
+				"devRole TEXT," +
 				"PRIMARY KEY(userId)" +
 				"CONSTRAINT devsTable_userId " +
 				"FOREIGN KEY(userId)" +
