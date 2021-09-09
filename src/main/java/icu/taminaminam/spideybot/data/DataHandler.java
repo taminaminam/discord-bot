@@ -109,7 +109,17 @@ public class DataHandler {
 				"targetId BIGINT," +
 				"isUser BOOLEAN," +
 				"isWhitelist BOOLEAN," +
-				"PRIMARY KEY(permissionName, guildId, targetId, isUser)" +
+				"PRIMARY KEY(permissionName, guildId, targetId, isUser)," +
+				"CONSTRAINT permissions_guildid_fkey " +
+					"FOREIGN KEY (guildid) " +
+						"REFERENCES " + Tables.GUILDS.getName() +"(guildId) " +
+						"ON UPDATE CASCADE " +
+						"ON DELETE CASCADE," +
+				"CONSTRAINT permissions_targetid_fkey " +
+					"FOREIGN KEY (targetid) " +
+						"REFERENCES " + Tables.USERS.getName() +"(userid) " +
+						"ON UPDATE CASCADE " +
+						"ON DELETE CASCADE" +
 				")";
 		//devs table to identify "Bot Owners" and Devs
 		String createDevsTable = "CREATE TABLE IF NOT EXISTS " + Tables.DEVS.getName() + " (" +
@@ -119,11 +129,11 @@ public class DataHandler {
 				"isListed BOOLEAN," +
 				"devRole TEXT," +
 				"status TEXT," +
-				"PRIMARY KEY(userId)" +
+				"PRIMARY KEY(userId)," +
 				"CONSTRAINT devsTable_userId " +
-				"FOREIGN KEY(userId)" +
-				"REFERENCES " + Tables.USERS.getName() + "(userId) " +
-				"ON DELETE CASCADE" +
+					"FOREIGN KEY(userId)" +
+						"REFERENCES " + Tables.USERS.getName() + "(userId) " +
+						"ON DELETE CASCADE" +
 				")";
 
 		return useConnection(con -> Mono.from(con.createBatch()
