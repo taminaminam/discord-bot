@@ -39,7 +39,7 @@ public class BotUtils {
 	/**
 	 * The {@link Color} used in several {@link Command}s as embed color
 	 */
-	public static final Color BOT_COLOR = Color.of(0x0);
+	public static final Color BOT_COLOR = Color.of(0xA71814);
 	/**
 	 * The prefix that should get used by default if not changed by any user
 	 */
