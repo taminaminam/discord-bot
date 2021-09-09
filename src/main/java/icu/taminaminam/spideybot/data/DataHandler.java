@@ -15,9 +15,11 @@ import org.apache.logging.log4j.Logger;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.annotation.NonNull;
+import reactor.util.annotation.Nullable;
 
 import java.time.Duration;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 
 public class DataHandler {
@@ -116,6 +118,7 @@ public class DataHandler {
 				"isOwner BOOLEAN," +
 				"isListed BOOLEAN," +
 				"devRole TEXT," +
+				"status TEXT," +
 				"PRIMARY KEY(userId)" +
 				"CONSTRAINT devsTable_userId " +
 				"FOREIGN KEY(userId)" +
@@ -247,6 +250,108 @@ public class DataHandler {
 				.execute())
 				.flatMap(result -> Mono.from(result.map((row, rowMetadata) -> PermissionManager.CommandPermission.ofRow(row))))
 		);
+	}
+
+	/**
+	 * Puts the default values into the database for the provided ID. Nothing happens if the dev is already saved.
+	 *
+	 * @param userId The ID of the user that should get put into the database.
+	 * @return A {@link Mono} that upon success emits {@code true} if the user got inserted into the database or
+	 * {@code false} if the user was already saved.
+	 */
+	@NonNull
+	public static Mono<Boolean> addDevNoParams(@NonNull Snowflake userId){
+		return getConnection().flatMap(con -> Mono.from(con.createStatement("INSERT INTO " + Tables.DEVS.getName() + " (userId, isDev, isOwner, isListed, devRole, status) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING")
+				.bind("$1", userId.asLong())
+				.bind("$2", DBDev.defaultDev.isDev())
+				.bind("$3", DBDev.defaultDev.isOwner())
+				.bind("$4", DBDev.defaultDev.isListed())
+				.bind("$5", DBDev.defaultDev.getDevRole())
+				.bind("$6", DBDev.defaultDev.getStatus())
+				.execute())
+				.flatMapMany(Result::getRowsUpdated).next()
+				.map(i -> i > 0)
+		);
+	}
+
+	/**
+	 *
+	 * @param userId The ID of the user that should get put into the database.
+	 * @param isDev
+	 * @param isOwner
+	 * @param isListed
+	 * @param devRole
+	 * @return A {@link Mono} that upon success emits {@code true} if the user got inserted into the database or
+	 * {@code false} if the user was already saved.
+	 */
+	@NonNull
+	public static Mono<Boolean> addDev(@NonNull Snowflake userId, @Nullable boolean isDev, @Nullable boolean isOwner, @Nullable boolean isListed, @Nullable String devRole, @Nullable String status){
+		return getConnection().flatMap(con -> Mono.from(con.createStatement("INSERT INTO " + Tables.DEVS.getName() + " (userId, isDev, isOwner, isListed, devRole, status) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING")
+				.bind("$1", userId.asLong())
+				.bind("$2", Optional.ofNullable(isDev).orElse(DBDev.defaultDev.isDev()))
+				.bind("$3", Optional.ofNullable(isOwner).orElse(DBDev.defaultDev.isOwner()))
+				.bind("$4", Optional.ofNullable(isListed).orElse(DBDev.defaultDev.isListed()))
+				.bind("$5", Optional.ofNullable(devRole).orElse(DBDev.defaultDev.getDevRole()))
+				.bind("$6", Optional.ofNullable(status).orElse(DBDev.defaultDev.getStatus()))
+				.execute())
+				.flatMapMany(Result::getRowsUpdated).next()
+				.map(i -> i > 0)
+		);
+	}
+
+	/**
+	 * Retrieves the stored data of the user with the provided ID.
+	 *
+	 * @param userId The ID of the user to get the data from
+	 * @return A {@link Mono} emitting the {@link DBDev} upon completion
+	 */
+	@NonNull
+	public static Mono<DBDev> getDev(@NonNull Snowflake userId){
+		return getConnection().flatMap(con -> Mono.from(con.createStatement("SELECT * FROM " + Tables.DEVS.getName() + " WHERE userId=$1 LIMIT 1")
+				.bind("$1", userId.asLong())
+				.execute())
+				.flatMap(result -> Mono.from(result.map((row, rowMetadata) -> DBDev.ofRow(row))))
+		);
+	}
+
+	public static Mono<Void> setIsDev(Snowflake userId, boolean isDev){
+		return useConnection(con -> Mono.from(con.createStatement("UPDATE " + Tables.DEVS.getName() + " SET isDev=$1 WHERE userId=$2")
+				.bind("$1", isDev)
+				.bind("$2", userId.asLong())
+				.execute()
+		).flatMapMany(Result::getRowsUpdated).then());
+	}
+
+	public static Mono<Void> setIsOwner(Snowflake userId, boolean isOwner){
+		return useConnection(con -> Mono.from(con.createStatement("UPDATE " + Tables.DEVS.getName() + " SET isOwner=$1 WHERE userId=$2")
+				.bind("$1", isOwner)
+				.bind("$2", userId.asLong())
+				.execute()
+		).flatMapMany(Result::getRowsUpdated).then());
+	}
+
+	public static Mono<Void> setIsListed(Snowflake userId, boolean isListed){
+		return useConnection(con -> Mono.from(con.createStatement("UPDATE " + Tables.DEVS.getName() + " SET isListed=$1 WHERE userId=$2")
+				.bind("$1", isListed)
+				.bind("$2", userId.asLong())
+				.execute()
+		).flatMapMany(Result::getRowsUpdated).then());
+	}
+
+	public static Mono<Void> setdevRole(Snowflake userId, String devRole){
+		return useConnection(con -> Mono.from(con.createStatement("UPDATE " + Tables.DEVS.getName() + " SET devRole=$1 WHERE userId=$2")
+				.bind("$1", devRole)
+				.bind("$2", userId.asLong())
+				.execute()
+		).flatMapMany(Result::getRowsUpdated).then());
+	}
+
+	public static Mono<Void> setStatus(Snowflake userId, String status){
+		return useConnection(con -> Mono.from(con.createStatement("UPDATE " + Tables.DEVS.getName() + " SET status=$1 WHERE userId=$2")
+				.bind("$1", status)
+				.bind("$2", userId.asLong())
+				.execute()
+		).flatMapMany(Result::getRowsUpdated).then());
 	}
 
 }

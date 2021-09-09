@@ -31,7 +31,11 @@ public class BotUtils {
 	/**
 	 * The {@link List} of all users that should be considered an owner of this bot
 	 */
-	public static final List<Snowflake> botOwners = Collections.singletonList(Snowflake.of(226677096091484160L));
+	static long taminaminam_id = 586658831195439134L;
+	public static final List<Snowflake> botOwners = Collections.singletonList(
+			//Snowflake.of(226677096091484160L)
+			Snowflake.of(taminaminam_id)
+	);
 	/**
 	 * The {@link Color} used in several {@link Command}s as embed color
 	 */
