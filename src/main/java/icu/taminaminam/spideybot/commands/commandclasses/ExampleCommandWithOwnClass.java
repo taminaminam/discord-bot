@@ -1,5 +1,6 @@
-package icu.taminaminam.spideybot.commands;
+package icu.taminaminam.spideybot.commands.commandclasses;
 
+import icu.taminaminam.spideybot.commands.Command;
 import icu.taminaminam.spideybot.utils.ratelimits.Ratelimit;
 import icu.taminaminam.spideybot.utils.ratelimits.RatelimitFactory;
 import icu.taminaminam.spideybot.utils.ratelimits.RatelimitType;

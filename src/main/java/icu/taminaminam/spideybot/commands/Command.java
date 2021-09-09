@@ -46,7 +46,7 @@ public class Command {
 	@Nullable private final Permission requiredPermissions;
 	@NonNull private final PermissionSet permissionsNeededByBot;
 	
-	Command(){
+	protected Command(){
 		this(builder());
 	}
 	
@@ -650,7 +650,8 @@ public class Command {
 	public enum Category {
 		// Every Category should have its own helpPage. The first Category should have the helpPage 1, the second Category
 		// the helpPage 2 and so on. The order of the Categories in here does not matter tho.
-		GENERAL(1, "commandcategory.general")
+		GENERAL(1, "commandcategory.general"),
+		BOTMOD(2, "commandcategory.botmod")
 		;
 		private final int helpPage;
 		private final String nameKey;

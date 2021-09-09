@@ -324,6 +324,21 @@ public class DataHandler {
 		);
 	}
 
+	public static Flux<DBDev> getAllDevs(){
+		return getConnection().flatMapMany(
+				con -> Flux.from(
+						con.createStatement("SELECT * FROM " + Tables.DEVS.getName())
+								.execute()
+				).flatMap(
+						result -> Mono.from(
+								result.map(
+										(row, rowMetadata) -> DBDev.ofRow(row)
+								)
+						)
+				)
+		);
+	}
+
 	public static Mono<Void> setIsDev(Snowflake userId, boolean isDev){
 		return useConnection(con -> Mono.from(con.createStatement("UPDATE " + Tables.DEVS.getName() + " SET isDev=$1 WHERE userId=$2")
 				.bind("$1", isDev)

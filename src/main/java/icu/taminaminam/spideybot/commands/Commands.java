@@ -1,5 +1,7 @@
 package icu.taminaminam.spideybot.commands;
 
+import icu.taminaminam.spideybot.commands.commandclasses.AddDev;
+import icu.taminaminam.spideybot.commands.commandclasses.ExampleCommandWithOwnClass;
 import icu.taminaminam.spideybot.data.DataHandler;
 import icu.taminaminam.spideybot.utils.exceptions.BotException;
 import icu.taminaminam.spideybot.main.BotMain;
@@ -45,6 +47,7 @@ public class Commands {
 		logger.info("Registering all commands");
 		
 		new ExampleCommandWithOwnClass().register();
+		new AddDev().register();
 		
 		Command.builder()
 				.setName("help")
